@@ -3,756 +3,502 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>El Conde de Montecristo — Tracker</title>
+<title>Biblioteca — Tracker de Lectura</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f1117">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Montecristo">
+<meta name="apple-mobile-web-app-title" content="Lector">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --border: #2e3347;
-    --text: #e8eaf2;
-    --text2: #8b90a8;
-    --text3: #555c78;
-    --accent: #6c7fff;
-    --accent-dim: rgba(108,127,255,0.15);
-    --accent-border: rgba(108,127,255,0.35);
-    --danger: #ff5c5c;
-    --danger-dim: rgba(255,92,92,0.12);
-    --success: #4ade80;
-    --radius: 10px;
-    --font: 'Inter', system-ui, sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { background: var(--bg); }
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 0 0 80px;
-  }
-
-  /* HEADER */
-  .header {
-    padding: 1.25rem 1.25rem 0;
-    margin-bottom: 1rem;
-  }
-  .header-eyebrow {
-    font-size: 11px;
-    color: var(--text3);
-    letter-spacing: 0.06em;
-    margin-bottom: 4px;
-  }
-  .header-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-    line-height: 1.3;
-    margin-bottom: 2px;
-  }
-  .header-sub { font-size: 13px; color: var(--text2); }
-
-  /* PROGRESS */
-  .progress-wrap {
-    margin: 1rem 1.25rem 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-  }
-  .progress-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 10px;
-  }
-  .progress-pages { font-size: 13px; color: var(--text2); }
-  .progress-pct { font-size: 20px; font-weight: 600; color: var(--accent); }
-  .progress-bar-bg {
-    background: var(--surface2);
-    border-radius: 999px;
-    height: 5px;
-    overflow: hidden;
-  }
-  .progress-bar-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: var(--accent);
-    transition: width 0.5s ease;
-  }
-
-  /* NAV TABS */
-  .tabs {
-    display: flex;
-    margin: 1.25rem 1.25rem 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 3px;
-    gap: 2px;
-  }
-  .tab {
-    flex: 1;
-    padding: 7px 4px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    color: var(--text2);
-    border: none;
-    border-radius: 7px;
-    background: none;
-    font-family: var(--font);
-    transition: all 0.15s;
-  }
-  .tab.active {
-    background: var(--surface2);
-    color: var(--text);
-  }
-
-  /* TAB CONTENT */
-  .tab-content { padding: 1rem 1.25rem 0; display: none; }
-  .tab-content.active { display: block; }
-
-  /* PREDICTION CARD */
-  .predict-card {
-    background: var(--accent-dim);
-    border: 1px solid var(--accent-border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  .predict-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .predict-title { font-size: 12px; font-weight: 500; color: var(--accent); }
-  .predict-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  .predict-item .label { font-size: 11px; color: var(--accent); opacity: 0.7; margin-bottom: 2px; }
-  .predict-item .val { font-size: 18px; font-weight: 600; color: var(--accent); }
-  .confidence-wrap { margin-top: 8px; }
-  .confidence-top { display: flex; justify-content: space-between; font-size: 11px; color: var(--accent); opacity: 0.7; margin-bottom: 4px; }
-  .confidence-bg { background: rgba(108,127,255,0.15); border-radius: 999px; height: 3px; overflow: hidden; }
-  .confidence-fill { height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.5s; }
-
-  .no-predict {
-    font-size: 13px;
-    color: var(--text3);
-    margin-bottom: 1rem;
-    padding: 0.5rem 0;
-  }
-
-  /* TIMER CARD */
-  .timer-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    text-align: center;
-  }
-  .timer-status { font-size: 12px; color: var(--text3); margin-bottom: 6px; }
-  .timer-display {
-    font-size: 44px;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: 3px;
-    font-variant-numeric: tabular-nums;
-    margin-bottom: 16px;
-    line-height: 1;
-  }
-  .timer-display.running { color: var(--accent); }
-
-  /* START PANEL */
-  .start-panel {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 0.9rem;
-    margin-bottom: 14px;
-    text-align: left;
-  }
-  .start-panel-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-  .start-page-row { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
-  .start-page-row strong { color: var(--text); }
-  .hint-text { font-size: 12px; color: var(--text3); margin-bottom: 8px; }
-  .link-btn {
-    font-size: 12px; color: var(--accent); cursor: pointer;
-    background: none; border: none; font-family: var(--font); padding: 0;
-    text-decoration: underline; text-underline-offset: 2px;
-  }
-  .correction-inner {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-  }
-  .input-row {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 10px;
-  }
-  .input-row label { font-size: 13px; color: var(--text2); }
-  .input-row input[type=number] {
-    width: 80px; text-align: center; font-size: 14px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 6px; padding: 6px; color: var(--text);
-    font-family: var(--font);
-  }
-  .input-row input:focus { outline: none; border-color: var(--accent); }
-
-  /* FINISH PANEL */
-  .finish-panel { text-align: left; }
-  .finish-label { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
-  .big-input {
-    width: 100%; text-align: center; font-size: 22px; font-weight: 600;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px; color: var(--text);
-    font-family: var(--font); margin-bottom: 4px;
-  }
-  .big-input:focus { outline: none; border-color: var(--accent); }
-
-  /* ERRORS */
-  .err { font-size: 12px; color: var(--danger); margin-bottom: 8px; display: none; }
-
-  /* BUTTONS */
-  .btn-row { display: flex; gap: 8px; justify-content: center; }
-  .btn {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    background: transparent;
-    color: var(--text2);
-    font-family: var(--font);
-    transition: all 0.15s;
-  }
-  .btn:hover { background: var(--surface2); color: var(--text); }
-  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .btn.primary:hover { opacity: 0.88; }
-  .btn.danger { border-color: transparent; color: var(--danger); background: var(--danger-dim); }
-  .btn.full { width: 100%; }
-
-  /* STAT GRID */
-  .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 1rem; }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 0.8rem;
-  }
-  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
-  .stat-value { font-size: 20px; font-weight: 600; color: var(--text); line-height: 1.2; }
-  .stat-unit { font-size: 12px; font-weight: 400; color: var(--text2); }
-
-  /* SESSIONS */
-  .sessions-list { display: flex; flex-direction: column; gap: 8px; }
-  .session-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 0.8rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .session-date { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
-  .session-detail { font-size: 12px; color: var(--text2); }
-  .session-pages { font-size: 16px; font-weight: 600; color: var(--text); text-align: right; }
-  .session-speed { font-size: 12px; color: var(--text3); text-align: right; }
-
-  /* CHARTS */
-  .chart-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  .chart-title { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 12px; }
-
-  /* EMPTY */
-  .empty { text-align: center; padding: 2.5rem 1rem; color: var(--text3); font-size: 14px; }
-
-  /* SECTION TITLE */
-  .section-title { font-size: 11px; font-weight: 500; color: var(--text3); margin-bottom: 8px; letter-spacing: 0.04em; }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--success);
-    color: #000;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 10px 20px;
-    border-radius: 999px;
-    transition: transform 0.3s ease;
-    z-index: 99;
-    white-space: nowrap;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3347;--text:#e8eaf2;--text2:#8b90a8;--text3:#555c78;--accent:#6c7fff;--accent-dim:rgba(108,127,255,0.15);--accent-border:rgba(108,127,255,0.35);--danger:#ff5c5c;--danger-dim:rgba(255,92,92,0.12);--success:#4ade80;--radius:10px;--font:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;padding:0 0 90px}
+.lib-header{padding:1.5rem 1.25rem 0.5rem}
+.lib-eyebrow{font-size:11px;color:var(--text3);letter-spacing:.06em;margin-bottom:4px}
+.lib-title{font-size:22px;font-weight:600;color:var(--text)}
+.lib-sub{font-size:13px;color:var(--text2);margin-top:2px}
+.books-list{padding:0 1.25rem;display:flex;flex-direction:column;gap:10px;margin-top:1rem}
+.book-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;cursor:pointer;transition:border-color .15s}
+.book-card:hover{border-color:var(--accent)}
+.book-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.book-card-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px}
+.book-card-author{font-size:12px;color:var(--text2)}
+.book-card-pct{font-size:20px;font-weight:600;color:var(--accent)}
+.book-prog-bg{background:var(--surface2);border-radius:999px;height:4px;overflow:hidden;margin-bottom:6px}
+.book-prog-fill{height:100%;border-radius:999px;background:var(--accent)}
+.book-card-bottom{display:flex;justify-content:space-between;font-size:12px;color:var(--text3)}
+.btn-add-book{margin:1rem 1.25rem 0;width:calc(100% - 2.5rem);padding:12px;border:1px dashed var(--border);border-radius:var(--radius);background:none;color:var(--text2);font-size:14px;font-family:var(--font);cursor:pointer;transition:all .15s}
+.btn-add-book:hover{border-color:var(--accent);color:var(--accent)}
+.empty-lib{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:14px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:16px 16px 0 0;padding:1.5rem 1.25rem;width:100%;max-width:480px;transform:translateY(100%);transition:transform .25s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:14px}
+.field input:focus{outline:none;border-color:var(--accent)}
+.modal-btns{display:flex;gap:8px;margin-top:1.25rem}
+.book-view{display:none}
+.bv-header{padding:1rem 1.25rem;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.btn-back{background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0 4px;line-height:1}
+.bv-eyebrow{font-size:11px;color:var(--text3);letter-spacing:.05em}
+.bv-title{font-size:16px;font-weight:600;color:var(--text)}
+.bv-author{font-size:12px;color:var(--text2)}
+.btn-delete-book{margin-left:auto;background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px}
+.progress-wrap{margin:1rem 1.25rem 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.progress-pages{font-size:13px;color:var(--text2)}
+.progress-pct{font-size:20px;font-weight:600;color:var(--accent)}
+.progress-bar-bg{background:var(--surface2);border-radius:999px;height:5px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:999px;background:var(--accent);transition:width .5s}
+.tabs{display:flex;margin:1rem 1.25rem 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:3px;gap:2px}
+.tab{flex:1;padding:7px 4px;text-align:center;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);border:none;border-radius:7px;background:none;font-family:var(--font);transition:all .15s}
+.tab.active{background:var(--surface2);color:var(--text)}
+.tab-content{padding:1rem 1.25rem 0;display:none}
+.tab-content.active{display:block}
+.predict-card{background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem}
+.predict-title{font-size:12px;font-weight:500;color:var(--accent);margin-bottom:10px}
+.predict-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
+.predict-item .label{font-size:11px;color:var(--accent);opacity:.7;margin-bottom:2px}
+.predict-item .val{font-size:18px;font-weight:600;color:var(--accent)}
+.confidence-top{display:flex;justify-content:space-between;font-size:11px;color:var(--accent);opacity:.7;margin-bottom:4px}
+.confidence-bg{background:rgba(108,127,255,.15);border-radius:999px;height:3px;overflow:hidden}
+.confidence-fill{height:100%;border-radius:999px;background:var(--accent);transition:width .5s}
+.no-predict{font-size:13px;color:var(--text3);margin-bottom:1rem;padding:.5rem 0}
+.timer-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;text-align:center}
+.timer-status{font-size:12px;color:var(--text3);margin-bottom:6px}
+.timer-display{font-size:44px;font-weight:600;color:var(--text);letter-spacing:3px;font-variant-numeric:tabular-nums;margin-bottom:16px;line-height:1}
+.timer-display.running{color:var(--accent)}
+.start-panel{background:var(--surface2);border-radius:8px;padding:.9rem;margin-bottom:14px;text-align:left}
+.start-panel-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.start-page-row{font-size:13px;color:var(--text2);margin-bottom:6px}
+.start-page-row strong{color:var(--text)}
+.hint-text{font-size:12px;color:var(--text3);margin-bottom:8px}
+.link-btn{font-size:12px;color:var(--accent);cursor:pointer;background:none;border:none;font-family:var(--font);padding:0;text-decoration:underline;text-underline-offset:2px}
+.correction-inner{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.input-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.input-row label{font-size:13px;color:var(--text2)}
+.input-row input[type=number]{width:80px;text-align:center;font-size:14px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px;color:var(--text);font-family:var(--font)}
+.finish-panel{text-align:left}
+.finish-label{font-size:13px;color:var(--text2);margin-bottom:8px}
+.big-input{width:100%;text-align:center;font-size:22px;font-weight:600;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:var(--font);margin-bottom:4px}
+.big-input:focus{outline:none;border-color:var(--accent)}
+.err{font-size:12px;color:var(--danger);margin-bottom:8px;display:none}
+.btn-row{display:flex;gap:8px;justify-content:center}
+.btn{border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text2);font-family:var(--font);transition:all .15s}
+.btn:hover{background:var(--surface2);color:var(--text)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{opacity:.88}
+.btn.danger{border-color:transparent;color:var(--danger);background:var(--danger-dim)}
+.btn.full{width:100%}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:4px}
+.stat-value{font-size:20px;font-weight:600;color:var(--text);line-height:1.2}
+.stat-unit{font-size:12px;font-weight:400;color:var(--text2)}
+.section-title{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:8px;letter-spacing:.04em}
+.sessions-list{display:flex;flex-direction:column;gap:8px}
+.session-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;display:flex;justify-content:space-between;align-items:center}
+.session-date{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.session-detail{font-size:12px;color:var(--text2)}
+.session-pages{font-size:16px;font-weight:600;color:var(--text);text-align:right}
+.session-speed{font-size:12px;color:var(--text3);text-align:right}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem}
+.chart-title{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:12px}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:14px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--success);color:#000;font-size:13px;font-weight:500;padding:10px 20px;border-radius:999px;transition:transform .3s;z-index:99;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-eyebrow">TRACKER DE LECTURA</div>
-  <div class="header-title">El Conde de Montecristo</div>
-  <div class="header-sub">Alexandre Dumas · Editorial Alma</div>
-</div>
-
-<div class="progress-wrap">
-  <div class="progress-top">
-    <div class="progress-pages" id="prog-pages">Página 0 de 1290</div>
-    <div class="progress-pct" id="prog-pct">0%</div>
+<div id="view-library">
+  <div class="lib-header">
+    <div class="lib-eyebrow">TRACKER DE LECTURA</div>
+    <div class="lib-title">Mi Biblioteca</div>
+    <div class="lib-sub" id="lib-sub">0 libros</div>
   </div>
-  <div class="progress-bar-bg">
-    <div class="progress-bar-fill" id="prog-fill" style="width:0%"></div>
+  <div class="books-list" id="books-list"></div>
+  <button class="btn-add-book" onclick="openAddBook()">+ Agregar libro</button>
+</div>
+
+<div id="view-book" class="book-view">
+  <div class="bv-header">
+    <button class="btn-back" onclick="goBack()">‹</button>
+    <div>
+      <div class="bv-eyebrow">TRACKER DE LECTURA</div>
+      <div class="bv-title" id="bv-title">—</div>
+      <div class="bv-author" id="bv-author">—</div>
+    </div>
+    <button class="btn-delete-book" onclick="bookOptions()">⋯</button>
   </div>
-</div>
-
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('leer')">Leer</button>
-  <button class="tab" onclick="switchTab('graficos')">Gráficos</button>
-  <button class="tab" onclick="switchTab('sesiones')">Sesiones</button>
-  <button class="tab" onclick="switchTab('stats')">Stats</button>
-</div>
-
-<!-- TAB LEER -->
-<div class="tab-content active" id="tab-leer">
-
-  <div id="predict-card" class="predict-card" style="display:none">
-    <div class="predict-header">
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <div class="progress-pages" id="prog-pages">Página 0 de —</div>
+      <div class="progress-pct" id="prog-pct">0%</div>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('leer')">Leer</button>
+    <button class="tab" onclick="switchTab('graficos')">Gráficos</button>
+    <button class="tab" onclick="switchTab('sesiones')">Sesiones</button>
+    <button class="tab" onclick="switchTab('stats')">Stats</button>
+  </div>
+  <div class="tab-content active" id="tab-leer">
+    <div id="predict-card" class="predict-card" style="display:none">
       <div class="predict-title">Predicción adaptativa</div>
-    </div>
-    <div class="predict-grid">
-      <div class="predict-item"><div class="label">Velocidad actual</div><div class="val" id="pred-speed">—</div></div>
-      <div class="predict-item"><div class="label">Horas restantes</div><div class="val" id="pred-hours">—</div></div>
-      <div class="predict-item"><div class="label">Días estimados</div><div class="val" id="pred-days">—</div></div>
-      <div class="predict-item"><div class="label">Promedio sesión</div><div class="val" id="pred-avg">—</div></div>
-    </div>
-    <div class="confidence-wrap">
+      <div class="predict-grid">
+        <div class="predict-item"><div class="label">Velocidad actual</div><div class="val" id="pred-speed">—</div></div>
+        <div class="predict-item"><div class="label">Horas restantes</div><div class="val" id="pred-hours">—</div></div>
+        <div class="predict-item"><div class="label">Días estimados</div><div class="val" id="pred-days">—</div></div>
+        <div class="predict-item"><div class="label">Promedio sesión</div><div class="val" id="pred-avg">—</div></div>
+      </div>
       <div class="confidence-top"><span>Confianza del modelo</span><span id="conf-pct">—</span></div>
       <div class="confidence-bg"><div class="confidence-fill" id="conf-fill" style="width:0%"></div></div>
     </div>
-  </div>
-  <div id="no-predict" class="no-predict">Completá tu primera sesión para ver la predicción.</div>
-
-  <div class="timer-card">
-    <div class="timer-status" id="timer-status">Listo para empezar</div>
-    <div class="timer-display" id="timer-display">00:00:00</div>
-
-    <!-- PRE-INICIO -->
-    <div id="pre-start">
-      <div class="start-panel">
-        <div class="start-panel-title">¿En qué página empezás?</div>
-        <div class="start-page-row">Página guardada: <strong id="saved-page">0</strong></div>
-        <div class="hint-text">Si está bien, arrancá directo. Si no, corregila.</div>
-        <button class="link-btn" onclick="toggleCorrection()">Corregir página de inicio</button>
-        <div id="correction-section" style="display:none" class="correction-inner">
-          <div class="input-row">
-            <label>Empiezo en la página:</label>
-            <input type="number" id="start-page-input" min="0" max="1289">
-          </div>
-          <div class="err" id="start-err">Página inválida.</div>
-          <div class="btn-row">
-            <button class="btn" onclick="toggleCorrection()">Cancelar</button>
-            <button class="btn primary" onclick="applyStartPage()">Aplicar</button>
+    <div id="no-predict" class="no-predict">Completá tu primera sesión para ver la predicción.</div>
+    <div class="timer-card">
+      <div class="timer-status" id="timer-status">Listo para empezar</div>
+      <div class="timer-display" id="timer-display">00:00:00</div>
+      <div id="pre-start">
+        <div class="start-panel">
+          <div class="start-panel-title">¿En qué página empezás?</div>
+          <div class="start-page-row">Página guardada: <strong id="saved-page">0</strong></div>
+          <div class="hint-text">Si está bien, arrancá directo. Si no, corregila.</div>
+          <button class="link-btn" onclick="toggleCorrection()">Corregir página de inicio</button>
+          <div id="correction-section" style="display:none" class="correction-inner">
+            <div class="input-row"><label>Empiezo en la página:</label><input type="number" id="start-page-input" min="0"></div>
+            <div class="err" id="start-err">Página inválida.</div>
+            <div class="btn-row">
+              <button class="btn" onclick="toggleCorrection()">Cancelar</button>
+              <button class="btn primary" onclick="applyStartPage()">Aplicar</button>
+            </div>
           </div>
         </div>
+        <div class="btn-row"><button class="btn primary" style="padding:11px 32px;font-size:14px" onclick="startSession()">Empezar sesión</button></div>
       </div>
-      <div class="btn-row">
-        <button class="btn primary" style="padding:11px 32px;font-size:14px" onclick="startSession()">Empezar sesión</button>
-      </div>
-    </div>
-
-    <!-- EN SESIÓN -->
-    <div id="in-session" style="display:none" class="finish-panel">
-      <div class="finish-label">¿En qué página terminás?</div>
-      <input type="number" class="big-input" id="end-page" min="1" max="1290" placeholder="—">
-      <div class="err" id="end-err">La página debe ser mayor a la actual.</div>
-      <div class="btn-row">
-        <button class="btn danger" onclick="cancelSession()">Cancelar</button>
-        <button class="btn primary" onclick="finishSession()">Guardar sesión</button>
+      <div id="in-session" style="display:none" class="finish-panel">
+        <div class="finish-label">¿En qué página terminás?</div>
+        <input type="number" class="big-input" id="end-page" min="1" placeholder="—">
+        <div class="err" id="end-err">La página debe ser mayor a la actual.</div>
+        <div class="btn-row">
+          <button class="btn danger" onclick="cancelSession()">Cancelar</button>
+          <button class="btn primary" onclick="finishSession()">Guardar sesión</button>
+        </div>
       </div>
     </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Páginas leídas</div><div class="stat-value" id="s-pages">0</div></div>
+      <div class="stat-card"><div class="stat-label">Tiempo total</div><div class="stat-value" id="s-time">0 <span class="stat-unit">h</span></div></div>
+      <div class="stat-card"><div class="stat-label">Velocidad media</div><div class="stat-value" id="s-speed">— <span class="stat-unit">p/h</span></div></div>
+      <div class="stat-card"><div class="stat-label">Días leyendo</div><div class="stat-value" id="s-days">0</div></div>
+    </div>
   </div>
-
-  <div class="stat-grid">
-    <div class="stat-card"><div class="stat-label">Páginas leídas</div><div class="stat-value" id="s-pages">0</div></div>
-    <div class="stat-card"><div class="stat-label">Tiempo total</div><div class="stat-value" id="s-time">0 <span class="stat-unit">h</span></div></div>
-    <div class="stat-card"><div class="stat-label">Velocidad media</div><div class="stat-value" id="s-speed">— <span class="stat-unit">p/h</span></div></div>
-    <div class="stat-card"><div class="stat-label">Días leyendo</div><div class="stat-value" id="s-days">0</div></div>
+  <div class="tab-content" id="tab-graficos">
+    <div class="chart-card"><div class="chart-title">Páginas por día</div><canvas id="chart-daily" height="160"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Progreso hacia el final</div><canvas id="chart-progress" height="160"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Velocidad por sesión (pág/h)</div><canvas id="chart-speed" height="140"></canvas></div>
   </div>
-</div>
-
-<!-- TAB GRÁFICOS -->
-<div class="tab-content" id="tab-graficos">
-  <div class="chart-card">
-    <div class="chart-title">Páginas por día</div>
-    <canvas id="chart-daily" height="160"></canvas>
+  <div class="tab-content" id="tab-sesiones">
+    <div class="sessions-list" id="sessions-list"><div class="empty">Todavía no hay sesiones.</div></div>
   </div>
-  <div class="chart-card">
-    <div class="chart-title">Progreso hacia el final</div>
-    <canvas id="chart-progress" height="160"></canvas>
-  </div>
-  <div class="chart-card">
-    <div class="chart-title">Velocidad por sesión (pág/h)</div>
-    <canvas id="chart-speed" height="140"></canvas>
-  </div>
-</div>
-
-<!-- TAB SESIONES -->
-<div class="tab-content" id="tab-sesiones">
-  <div class="sessions-list" id="sessions-list">
-    <div class="empty">Todavía no hay sesiones registradas.</div>
+  <div class="tab-content" id="tab-stats">
+    <div class="section-title">RESUMEN</div>
+    <div class="stat-grid" style="margin-bottom:1.25rem">
+      <div class="stat-card"><div class="stat-label">Total sesiones</div><div class="stat-value" id="st-sessions">0</div></div>
+      <div class="stat-card"><div class="stat-label">Mejor sesión</div><div class="stat-value" id="st-best">—<span class="stat-unit"> págs</span></div></div>
+      <div class="stat-card"><div class="stat-label">Racha actual</div><div class="stat-value" id="st-streak">0<span class="stat-unit"> días</span></div></div>
+      <div class="stat-card"><div class="stat-label">Vel. máxima</div><div class="stat-value" id="st-maxspeed">—<span class="stat-unit"> p/h</span></div></div>
+    </div>
+    <div class="section-title">PREDICCIÓN</div>
+    <div class="stat-card" style="margin-bottom:8px"><div class="stat-label">Horas restantes</div><div class="stat-value" id="st-hours">—</div></div>
+    <div class="stat-card" style="margin-bottom:8px"><div class="stat-label">Días restantes</div><div class="stat-value" id="st-days2">—</div></div>
+    <div class="stat-card" style="margin-bottom:1.5rem"><div class="stat-label">Fecha estimada de finalización</div><div class="stat-value" id="st-date" style="font-size:16px">—</div></div>
+    <button class="btn danger full" onclick="resetBook()">Reiniciar progreso de este libro</button>
   </div>
 </div>
 
-<!-- TAB STATS -->
-<div class="tab-content" id="tab-stats">
-  <div class="section-title">RESUMEN</div>
-  <div class="stat-grid" style="margin-bottom:1.25rem">
-    <div class="stat-card"><div class="stat-label">Total sesiones</div><div class="stat-value" id="st-sessions">0</div></div>
-    <div class="stat-card"><div class="stat-label">Mejor sesión</div><div class="stat-value" id="st-best">—<span class="stat-unit"> págs</span></div></div>
-    <div class="stat-card"><div class="stat-label">Racha actual</div><div class="stat-value" id="st-streak">0<span class="stat-unit"> días</span></div></div>
-    <div class="stat-card"><div class="stat-label">Vel. máxima</div><div class="stat-value" id="st-maxspeed">—<span class="stat-unit"> p/h</span></div></div>
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">Agregar libro</div>
+    <div class="field"><label>Título *</label><input type="text" id="new-title" placeholder="El nombre del viento"></div>
+    <div class="field"><label>Autor</label><input type="text" id="new-author" placeholder="Patrick Rothfuss"></div>
+    <div class="field"><label>Total de páginas *</label><input type="number" id="new-pages" min="1" placeholder="662"></div>
+    <div class="err" id="modal-err">Completá título y páginas.</div>
+    <div class="modal-btns">
+      <button class="btn full" onclick="closeAddBook()">Cancelar</button>
+      <button class="btn primary full" onclick="addBook()">Agregar</button>
+    </div>
   </div>
-  <div class="section-title">PREDICCIÓN</div>
-  <div class="stat-card" style="margin-bottom:8px"><div class="stat-label">Horas restantes</div><div class="stat-value" id="st-hours">—</div></div>
-  <div class="stat-card" style="margin-bottom:8px"><div class="stat-label">Días restantes</div><div class="stat-value" id="st-days2">—</div></div>
-  <div class="stat-card" style="margin-bottom:1.5rem"><div class="stat-label">Fecha estimada de finalización</div><div class="stat-value" id="st-date" style="font-size:16px">—</div></div>
-  <button class="btn danger full" onclick="resetAll()">Reiniciar todo el progreso</button>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const TOTAL = 1290;
-const STORAGE_KEY = 'montecristo_tracker_v1';
+const STORAGE_KEY='reading_tracker_v1';
+const OLD_KEY='montecristo_tracker_v1';
+let db={books:[]};
+let activeBookId=null;
+let timerRunning=false,startTime=null,elapsed=0,timerInterval=null;
+let charts={},corrOpen=false;
 
-let state = { sessions: [], currentPage: 0 };
-let timerRunning = false, startTime = null, elapsed = 0, timerInterval = null;
-let charts = {};
-let corrOpen = false;
-
-// ── STORAGE (localStorage — persiste en el navegador) ──
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const d = JSON.parse(raw);
-      state.sessions = d.sessions || [];
-      state.currentPage = d.currentPage || 0;
+function init(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){db=JSON.parse(raw);}
+    else{
+      const old=localStorage.getItem(OLD_KEY);
+      if(old){
+        const d=JSON.parse(old);
+        db.books=[{id:genId(),title:'El Conde de Montecristo',author:'Alexandre Dumas',totalPages:1290,currentPage:d.currentPage||0,sessions:d.sessions||[],createdAt:Date.now()}];
+        saveDb();
+      }
     }
-  } catch(e) {}
-  renderAll();
+  }catch(e){}
+  renderLibrary();
 }
-function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      sessions: state.sessions,
-      currentPage: state.currentPage
-    }));
-  } catch(e) {}
-}
+function saveDb(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(db));}catch(e){}}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
-// ── TABS ──
-function switchTab(t) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach((el, i) => {
-    el.classList.toggle('active', ['leer','graficos','sesiones','stats'][i] === t);
-  });
-  document.getElementById('tab-' + t).classList.add('active');
-  if (t === 'graficos') setTimeout(renderCharts, 50);
-  if (t === 'sesiones') renderSessions();
-  if (t === 'stats') renderStats();
-}
-
-// ── CORRECTION ──
-function toggleCorrection() {
-  corrOpen = !corrOpen;
-  document.getElementById('correction-section').style.display = corrOpen ? '' : 'none';
-  if (corrOpen) {
-    document.getElementById('start-page-input').value = state.currentPage;
-    document.getElementById('start-err').style.display = 'none';
-  }
-}
-function applyStartPage() {
-  const val = parseInt(document.getElementById('start-page-input').value);
-  const errEl = document.getElementById('start-err');
-  if (isNaN(val) || val < 0 || val >= TOTAL) { errEl.style.display = ''; return; }
-  errEl.style.display = 'none';
-  state.currentPage = val;
-  saveState();
-  renderAll();
-  toggleCorrection();
-  toast('Página actualizada');
-}
-
-// ── TIMER ──
-function startSession() {
-  timerRunning = true; startTime = Date.now(); elapsed = 0;
-  document.getElementById('pre-start').style.display = 'none';
-  document.getElementById('in-session').style.display = '';
-  document.getElementById('end-page').value = '';
-  document.getElementById('end-err').style.display = 'none';
-  document.getElementById('timer-status').textContent = 'Leyendo...';
-  document.getElementById('timer-display').classList.add('running');
-  timerInterval = setInterval(() => {
-    elapsed = Math.floor((Date.now() - startTime) / 1000);
-    document.getElementById('timer-display').textContent = fmt(elapsed);
-  }, 1000);
-}
-function cancelSession() {
-  clearInterval(timerInterval); timerRunning = false; elapsed = 0;
-  document.getElementById('timer-display').textContent = '00:00:00';
-  document.getElementById('timer-display').classList.remove('running');
-  document.getElementById('pre-start').style.display = '';
-  document.getElementById('in-session').style.display = 'none';
-  document.getElementById('timer-status').textContent = 'Listo para empezar';
-}
-function finishSession() {
-  const ep = parseInt(document.getElementById('end-page').value);
-  const errEl = document.getElementById('end-err');
-  if (!ep || ep <= state.currentPage || ep > TOTAL) {
-    errEl.textContent = ep <= state.currentPage ? 'La página debe ser mayor a la actual.' : 'Ingresá una página válida (1–1290).';
-    errEl.style.display = ''; return;
-  }
-  errEl.style.display = 'none';
-  clearInterval(timerInterval);
-  const pages = ep - state.currentPage;
-  const now = new Date();
-  state.sessions.unshift({
-    date: now.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'}),
-    ts: now.getTime(),
-    startPage: state.currentPage,
-    endPage: ep,
-    pages,
-    durationSec: elapsed
-  });
-  state.currentPage = ep;
-  timerRunning = false; elapsed = 0;
-  document.getElementById('timer-display').textContent = '00:00:00';
-  document.getElementById('timer-display').classList.remove('running');
-  document.getElementById('pre-start').style.display = '';
-  document.getElementById('in-session').style.display = 'none';
-  document.getElementById('timer-status').textContent = 'Listo para empezar';
-  saveState(); renderAll();
-  toast('Sesión guardada — ' + pages + ' páginas');
-}
-
-// ── PREDICCIÓN ADAPTATIVA (EWMA) ──
-function predict() {
-  const valid = state.sessions.filter(s => s.durationSec > 30 && s.pages > 0);
-  if (!valid.length) return null;
-  const ordered = [...valid].sort((a, b) => a.ts - b.ts);
-  // EWMA: α=0.3 da más peso a sesiones recientes
-  let ew = null;
-  for (const s of ordered) {
-    const spd = s.pages / (s.durationSec / 3600);
-    ew = ew === null ? spd : 0.3 * spd + 0.7 * ew;
-  }
-  const remaining = TOTAL - state.currentPage;
-  const hoursLeft = remaining / ew;
-  const avgSessionH = ordered.reduce((a, s) => a + s.durationSec / 3600, 0) / ordered.length;
-  const confidence = Math.min(100, Math.round(10 + ordered.length * 9));
-  const days = [...new Set(ordered.map(s => s.date))].length;
-  const span = ordered.length > 1 ? (ordered[ordered.length-1].ts - ordered[0].ts) / 86400000 + 1 : 1;
-  const freq = Math.min(1, days / span);
-  const daysLeft = freq > 0 && avgSessionH > 0 ? Math.round(hoursLeft / (avgSessionH * (days / span))) : null;
-  return {
-    speed: Math.round(ew),
-    hoursLeft: Math.round(hoursLeft * 10) / 10,
-    daysLeft,
-    confidence,
-    avgSessionMin: Math.round(avgSessionH * 60)
-  };
-}
-
-// ── RENDER PRINCIPAL ──
-function renderAll() {
-  const pct = Math.min(100, Math.round(state.currentPage / TOTAL * 100));
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-pages').textContent = 'Página ' + state.currentPage + ' de ' + TOTAL;
-  document.getElementById('prog-pct').textContent = pct + '%';
-  document.getElementById('saved-page').textContent = state.currentPage;
-
-  const totalSec = state.sessions.reduce((a, s) => a + s.durationSec, 0);
-  const totalPages = state.sessions.reduce((a, s) => a + s.pages, 0);
-  const speed = totalSec > 0 ? Math.round(totalPages / (totalSec / 3600)) : null;
-  const daySet = new Set(state.sessions.map(s => s.date));
-
-  document.getElementById('s-pages').textContent = totalPages;
-  document.getElementById('s-time').innerHTML = (totalSec / 3600).toFixed(1) + ' <span class="stat-unit">h</span>';
-  document.getElementById('s-speed').innerHTML = (speed || '—') + ' <span class="stat-unit">p/h</span>';
-  document.getElementById('s-days').textContent = daySet.size;
-
-  const p = predict();
-  if (p) {
-    document.getElementById('predict-card').style.display = '';
-    document.getElementById('no-predict').style.display = 'none';
-    document.getElementById('pred-speed').textContent = p.speed + ' p/h';
-    document.getElementById('pred-hours').textContent = p.hoursLeft + 'h';
-    document.getElementById('pred-days').textContent = p.daysLeft ? p.daysLeft + ' días' : '—';
-    document.getElementById('pred-avg').textContent = p.avgSessionMin + ' min';
-    document.getElementById('conf-pct').textContent = p.confidence + '%';
-    document.getElementById('conf-fill').style.width = p.confidence + '%';
-  } else {
-    document.getElementById('predict-card').style.display = 'none';
-    document.getElementById('no-predict').style.display = '';
-  }
-}
-
-function renderSessions() {
-  const el = document.getElementById('sessions-list');
-  if (!state.sessions.length) { el.innerHTML = '<div class="empty">Todavía no hay sesiones registradas.</div>'; return; }
-  el.innerHTML = state.sessions.map(s => {
-    const spd = s.durationSec > 0 ? Math.round(s.pages / (s.durationSec / 3600)) : 0;
-    return `<div class="session-item">
-      <div>
-        <div class="session-date">${s.date}</div>
-        <div class="session-detail">Págs. ${s.startPage}–${s.endPage} · ${fmtDur(s.durationSec)}</div>
-      </div>
-      <div>
-        <div class="session-pages">${s.pages} págs.</div>
-        <div class="session-speed">${spd} p/h</div>
-      </div>
+function renderLibrary(){
+  document.getElementById('view-library').style.display='';
+  document.getElementById('view-book').style.display='none';
+  const n=db.books.length;
+  document.getElementById('lib-sub').textContent=n===0?'Sin libros aún':n===1?'1 libro':n+' libros';
+  const el=document.getElementById('books-list');
+  if(!n){el.innerHTML='<div class="empty">Agregá tu primer libro para empezar.</div>';return;}
+  el.innerHTML=db.books.map(b=>{
+    const pct=Math.min(100,Math.round(b.currentPage/b.totalPages*100));
+    const totalSec=(b.sessions||[]).reduce((a,s)=>a+s.durationSec,0);
+    const totalPages=(b.sessions||[]).reduce((a,s)=>a+s.pages,0);
+    const speed=totalSec>0?Math.round(totalPages/(totalSec/3600)):null;
+    return`<div class="book-card" onclick="openBook('${b.id}')">
+      <div class="book-card-top"><div><div class="book-card-title">${b.title}</div><div class="book-card-author">${b.author||'Sin autor'}</div></div><div class="book-card-pct">${pct}%</div></div>
+      <div class="book-prog-bg"><div class="book-prog-fill" style="width:${pct}%"></div></div>
+      <div class="book-card-bottom"><span>Pág. ${b.currentPage} de ${b.totalPages}</span><span>${speed?speed+' p/h promedio':(b.sessions||[]).length+' sesiones'}</span></div>
     </div>`;
   }).join('');
 }
 
-function renderStats() {
-  const n = state.sessions.length;
-  document.getElementById('st-sessions').textContent = n;
-  if (!n) return;
-  const best = Math.max(...state.sessions.map(s => s.pages));
-  const maxSpd = Math.max(...state.sessions.filter(s => s.durationSec > 0).map(s => Math.round(s.pages / (s.durationSec / 3600))));
-  const dayArr = [...new Set(state.sessions.map(s => s.date))].sort();
-  let streak = dayArr.length ? 1 : 0;
-  for (let i = dayArr.length - 2; i >= 0; i--) {
-    const a = new Date(dayArr[i].split('/').reverse().join('-'));
-    const b = new Date(dayArr[i+1].split('/').reverse().join('-'));
-    if ((b - a) / 86400000 === 1) streak++; else break;
+function openAddBook(){
+  ['new-title','new-author'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('new-pages').value='';
+  document.getElementById('modal-err').style.display='none';
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('new-title').focus(),300);
+}
+function closeAddBook(){document.getElementById('modal-overlay').classList.remove('open');}
+document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeAddBook();});
+
+function addBook(){
+  const title=document.getElementById('new-title').value.trim();
+  const author=document.getElementById('new-author').value.trim();
+  const pages=parseInt(document.getElementById('new-pages').value);
+  if(!title||!pages||pages<1){document.getElementById('modal-err').style.display='';return;}
+  document.getElementById('modal-err').style.display='none';
+  db.books.push({id:genId(),title,author,totalPages:pages,currentPage:0,sessions:[],createdAt:Date.now()});
+  saveDb();closeAddBook();renderLibrary();toast('Libro agregado');
+}
+
+function openBook(id){
+  activeBookId=id;
+  const b=getBook();
+  document.getElementById('view-library').style.display='none';
+  document.getElementById('view-book').style.display='';
+  document.getElementById('bv-title').textContent=b.title;
+  document.getElementById('bv-author').textContent=b.author||'';
+  clearInterval(timerInterval);timerRunning=false;elapsed=0;
+  document.getElementById('timer-display').textContent='00:00:00';
+  document.getElementById('timer-display').classList.remove('running');
+  document.getElementById('pre-start').style.display='';
+  document.getElementById('in-session').style.display='none';
+  document.getElementById('timer-status').textContent='Listo para empezar';
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===0));
+  document.getElementById('tab-leer').classList.add('active');
+  Object.values(charts).forEach(c=>c&&c.destroy());charts={};
+  corrOpen=false;document.getElementById('correction-section').style.display='none';
+  renderBook();
+}
+function goBack(){clearInterval(timerInterval);timerRunning=false;renderLibrary();}
+function getBook(){return db.books.find(b=>b.id===activeBookId);}
+
+function renderBook(){
+  const b=getBook();if(!b)return;
+  const pct=Math.min(100,Math.round(b.currentPage/b.totalPages*100));
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pages').textContent='Página '+b.currentPage+' de '+b.totalPages;
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('saved-page').textContent=b.currentPage;
+  document.getElementById('end-page').max=b.totalPages;
+  const totalSec=b.sessions.reduce((a,s)=>a+s.durationSec,0);
+  const totalPages=b.sessions.reduce((a,s)=>a+s.pages,0);
+  const speed=totalSec>0?Math.round(totalPages/(totalSec/3600)):null;
+  const daySet=new Set(b.sessions.map(s=>s.date));
+  document.getElementById('s-pages').textContent=totalPages;
+  document.getElementById('s-time').innerHTML=(totalSec/3600).toFixed(1)+' <span class="stat-unit">h</span>';
+  document.getElementById('s-speed').innerHTML=(speed||'—')+' <span class="stat-unit">p/h</span>';
+  document.getElementById('s-days').textContent=daySet.size;
+  const p=predict(b);
+  if(p){
+    document.getElementById('predict-card').style.display='';
+    document.getElementById('no-predict').style.display='none';
+    document.getElementById('pred-speed').textContent=p.speed+' p/h';
+    document.getElementById('pred-hours').textContent=p.hoursLeft+'h';
+    document.getElementById('pred-days').textContent=p.daysLeft?p.daysLeft+' días':'—';
+    document.getElementById('pred-avg').textContent=p.avgSessionMin+' min';
+    document.getElementById('conf-pct').textContent=p.confidence+'%';
+    document.getElementById('conf-fill').style.width=p.confidence+'%';
+  }else{
+    document.getElementById('predict-card').style.display='none';
+    document.getElementById('no-predict').style.display='';
   }
-  document.getElementById('st-best').innerHTML = best + '<span class="stat-unit"> págs</span>';
-  document.getElementById('st-streak').innerHTML = streak + '<span class="stat-unit"> días</span>';
-  document.getElementById('st-maxspeed').innerHTML = maxSpd + '<span class="stat-unit"> p/h</span>';
-  const p = predict();
-  if (p) {
-    document.getElementById('st-hours').textContent = p.hoursLeft + 'h';
-    document.getElementById('st-days2').textContent = p.daysLeft ? p.daysLeft + ' días' : '—';
-    if (p.daysLeft) {
-      const fin = new Date(); fin.setDate(fin.getDate() + p.daysLeft);
-      document.getElementById('st-date').textContent = fin.toLocaleDateString('es-AR', {day:'2-digit', month:'long', year:'numeric'});
-    }
+}
+
+function predict(b){
+  const valid=(b.sessions||[]).filter(s=>s.durationSec>30&&s.pages>0);
+  if(!valid.length)return null;
+  const ordered=[...valid].sort((a,bv)=>a.ts-bv.ts);
+  let ew=null;
+  for(const s of ordered){const spd=s.pages/(s.durationSec/3600);ew=ew===null?spd:0.3*spd+0.7*ew;}
+  const remaining=b.totalPages-b.currentPage;
+  const hoursLeft=remaining/ew;
+  const avgSessionH=ordered.reduce((a,s)=>a+s.durationSec/3600,0)/ordered.length;
+  const confidence=Math.min(100,Math.round(10+ordered.length*9));
+  const days=[...new Set(ordered.map(s=>s.date))].length;
+  const span=ordered.length>1?(ordered[ordered.length-1].ts-ordered[0].ts)/86400000+1:1;
+  const freq=Math.min(1,days/span);
+  const daysLeft=freq>0&&avgSessionH>0?Math.round(hoursLeft/(avgSessionH*(days/span))):null;
+  return{speed:Math.round(ew),hoursLeft:Math.round(hoursLeft*10)/10,daysLeft,confidence,avgSessionMin:Math.round(avgSessionH*60)};
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['leer','graficos','sesiones','stats'][i]===t));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='graficos')setTimeout(renderCharts,50);
+  if(t==='sesiones')renderSessions();
+  if(t==='stats')renderStats();
+}
+
+function toggleCorrection(){
+  corrOpen=!corrOpen;
+  document.getElementById('correction-section').style.display=corrOpen?'':'none';
+  if(corrOpen){const b=getBook();document.getElementById('start-page-input').value=b.currentPage;document.getElementById('start-err').style.display='none';}
+}
+function applyStartPage(){
+  const b=getBook();
+  const val=parseInt(document.getElementById('start-page-input').value);
+  if(isNaN(val)||val<0||val>=b.totalPages){document.getElementById('start-err').style.display='';return;}
+  document.getElementById('start-err').style.display='none';
+  b.currentPage=val;saveDb();renderBook();toggleCorrection();toast('Página actualizada');
+}
+
+function startSession(){
+  timerRunning=true;startTime=Date.now();elapsed=0;
+  document.getElementById('pre-start').style.display='none';
+  document.getElementById('in-session').style.display='';
+  document.getElementById('end-page').value='';
+  document.getElementById('end-err').style.display='none';
+  document.getElementById('timer-status').textContent='Leyendo...';
+  document.getElementById('timer-display').classList.add('running');
+  timerInterval=setInterval(()=>{elapsed=Math.floor((Date.now()-startTime)/1000);document.getElementById('timer-display').textContent=fmt(elapsed);},1000);
+}
+function cancelSession(){
+  clearInterval(timerInterval);timerRunning=false;elapsed=0;
+  document.getElementById('timer-display').textContent='00:00:00';
+  document.getElementById('timer-display').classList.remove('running');
+  document.getElementById('pre-start').style.display='';
+  document.getElementById('in-session').style.display='none';
+  document.getElementById('timer-status').textContent='Listo para empezar';
+}
+function finishSession(){
+  const b=getBook();
+  const ep=parseInt(document.getElementById('end-page').value);
+  const errEl=document.getElementById('end-err');
+  if(!ep||ep<=b.currentPage||ep>b.totalPages){errEl.textContent=ep<=b.currentPage?'La página debe ser mayor a la actual.':'Ingresá una página válida.';errEl.style.display='';return;}
+  errEl.style.display='none';clearInterval(timerInterval);
+  const pages=ep-b.currentPage;const now=new Date();
+  b.sessions.unshift({date:now.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}),ts:now.getTime(),startPage:b.currentPage,endPage:ep,pages,durationSec:elapsed});
+  b.currentPage=ep;timerRunning=false;elapsed=0;
+  document.getElementById('timer-display').textContent='00:00:00';
+  document.getElementById('timer-display').classList.remove('running');
+  document.getElementById('pre-start').style.display='';
+  document.getElementById('in-session').style.display='none';
+  document.getElementById('timer-status').textContent='Listo para empezar';
+  saveDb();renderBook();toast('Sesión guardada — '+pages+' páginas');
+}
+
+function renderSessions(){
+  const b=getBook();const el=document.getElementById('sessions-list');
+  if(!b.sessions.length){el.innerHTML='<div class="empty">Todavía no hay sesiones.</div>';return;}
+  el.innerHTML=b.sessions.map(s=>{
+    const spd=s.durationSec>0?Math.round(s.pages/(s.durationSec/3600)):0;
+    return`<div class="session-item"><div><div class="session-date">${s.date}</div><div class="session-detail">Págs. ${s.startPage}–${s.endPage} · ${fmtDur(s.durationSec)}</div></div><div><div class="session-pages">${s.pages} págs.</div><div class="session-speed">${spd} p/h</div></div></div>`;
+  }).join('');
+}
+
+function renderStats(){
+  const b=getBook();const n=b.sessions.length;
+  document.getElementById('st-sessions').textContent=n;if(!n)return;
+  const best=Math.max(...b.sessions.map(s=>s.pages));
+  const maxSpd=Math.max(...b.sessions.filter(s=>s.durationSec>0).map(s=>Math.round(s.pages/(s.durationSec/3600))));
+  const dayArr=[...new Set(b.sessions.map(s=>s.date))].sort();
+  let streak=dayArr.length?1:0;
+  for(let i=dayArr.length-2;i>=0;i--){const a=new Date(dayArr[i].split('/').reverse().join('-')),bv=new Date(dayArr[i+1].split('/').reverse().join('-'));if((bv-a)/86400000===1)streak++;else break;}
+  document.getElementById('st-best').innerHTML=best+'<span class="stat-unit"> págs</span>';
+  document.getElementById('st-streak').innerHTML=streak+'<span class="stat-unit"> días</span>';
+  document.getElementById('st-maxspeed').innerHTML=maxSpd+'<span class="stat-unit"> p/h</span>';
+  const p=predict(b);
+  if(p){
+    document.getElementById('st-hours').textContent=p.hoursLeft+'h';
+    document.getElementById('st-days2').textContent=p.daysLeft?p.daysLeft+' días':'—';
+    if(p.daysLeft){const fin=new Date();fin.setDate(fin.getDate()+p.daysLeft);document.getElementById('st-date').textContent=fin.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});}
   }
 }
 
-// ── CHARTS ──
-function renderCharts() {
-  const accent = '#6c7fff';
-  const text2 = '#8b90a8';
-  const border = '#2e3347';
-  const defaults = {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { ticks: { color: text2, font: { size: 11 } }, grid: { color: border } },
-      y: { ticks: { color: text2, font: { size: 11 } }, grid: { color: border } }
-    }
-  };
-  Chart.defaults.color = text2;
-
-  // Páginas por día
-  const byDay = {};
-  [...state.sessions].reverse().forEach(s => { byDay[s.date] = (byDay[s.date] || 0) + s.pages; });
-  if (charts.daily) charts.daily.destroy();
-  charts.daily = new Chart(document.getElementById('chart-daily'), {
-    type: 'bar',
-    data: { labels: Object.keys(byDay), datasets: [{ data: Object.values(byDay), backgroundColor: accent + '66', borderColor: accent, borderWidth: 1, borderRadius: 4 }] },
-    options: { ...defaults }
-  });
-
-  // Progreso acumulado
-  const ordered = [...state.sessions].sort((a, b) => a.ts - b.ts);
-  const pLabels = ['Inicio'], pValues = [0]; let cum = 0;
-  ordered.forEach(s => { cum += s.pages; pLabels.push(s.date); pValues.push(Math.min(cum, TOTAL)); });
-  if (charts.progress) charts.progress.destroy();
-  charts.progress = new Chart(document.getElementById('chart-progress'), {
-    type: 'line',
-    data: { labels: pLabels, datasets: [
-      { label: 'Leído', data: pValues, borderColor: accent, backgroundColor: accent + '22', fill: true, tension: 0.3, pointRadius: 3 },
-      { label: 'Meta', data: pLabels.map(() => TOTAL), borderColor: border, borderDash: [4, 4], pointRadius: 0, fill: false }
-    ]},
-    options: { ...defaults, plugins: { legend: { display: true, labels: { color: text2, font: { size: 11 }, boxWidth: 10 } } } }
-  });
-
-  // Velocidad por sesión + EWMA
-  const spdLabels = ordered.map(s => s.date);
-  const spdValues = ordered.map(s => s.durationSec > 0 ? Math.round(s.pages / (s.durationSec / 3600)) : 0);
-  const ewmaLine = []; let ew = null;
-  spdValues.forEach(v => { ew = ew === null ? v : 0.3 * v + 0.7 * ew; ewmaLine.push(Math.round(ew)); });
-  if (charts.speed) charts.speed.destroy();
-  charts.speed = new Chart(document.getElementById('chart-speed'), {
-    type: 'line',
-    data: { labels: spdLabels, datasets: [
-      { label: 'Sesión', data: spdValues, borderColor: accent + '66', pointRadius: 4, tension: 0.2, fill: false },
-      { label: 'Tendencia', data: ewmaLine, borderColor: accent, pointRadius: 0, tension: 0.4, borderWidth: 2, fill: false }
-    ]},
-    options: { ...defaults, plugins: { legend: { display: true, labels: { color: text2, font: { size: 11 }, boxWidth: 10 } } } }
-  });
+function renderCharts(){
+  const b=getBook();
+  const accent='#6c7fff',text2='#8b90a8',border='#2e3347';
+  const defaults={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:text2,font:{size:11}},grid:{color:border}},y:{ticks:{color:text2,font:{size:11}},grid:{color:border}}}};
+  Chart.defaults.color=text2;
+  const byDay={};[...b.sessions].reverse().forEach(s=>{byDay[s.date]=(byDay[s.date]||0)+s.pages;});
+  if(charts.daily)charts.daily.destroy();
+  charts.daily=new Chart(document.getElementById('chart-daily'),{type:'bar',data:{labels:Object.keys(byDay),datasets:[{data:Object.values(byDay),backgroundColor:accent+'66',borderColor:accent,borderWidth:1,borderRadius:4}]},options:{...defaults}});
+  const ordered=[...b.sessions].sort((a,bv)=>a.ts-bv.ts);
+  const pL=['Inicio'],pV=[0];let cum=0;
+  ordered.forEach(s=>{cum+=s.pages;pL.push(s.date);pV.push(Math.min(cum,b.totalPages));});
+  if(charts.progress)charts.progress.destroy();
+  charts.progress=new Chart(document.getElementById('chart-progress'),{type:'line',data:{labels:pL,datasets:[{label:'Leído',data:pV,borderColor:accent,backgroundColor:accent+'22',fill:true,tension:0.3,pointRadius:3},{label:'Meta',data:pL.map(()=>b.totalPages),borderColor:border,borderDash:[4,4],pointRadius:0,fill:false}]},options:{...defaults,plugins:{legend:{display:true,labels:{color:text2,font:{size:11},boxWidth:10}}}}});
+  const sL=ordered.map(s=>s.date),sV=ordered.map(s=>s.durationSec>0?Math.round(s.pages/(s.durationSec/3600)):0);
+  const ewL=[];let ew=null;sV.forEach(v=>{ew=ew===null?v:0.3*v+0.7*ew;ewL.push(Math.round(ew));});
+  if(charts.speed)charts.speed.destroy();
+  charts.speed=new Chart(document.getElementById('chart-speed'),{type:'line',data:{labels:sL,datasets:[{label:'Sesión',data:sV,borderColor:accent+'66',pointRadius:4,tension:0.2,fill:false},{label:'Tendencia',data:ewL,borderColor:accent,pointRadius:0,tension:0.4,borderWidth:2,fill:false}]},options:{...defaults,plugins:{legend:{display:true,labels:{color:text2,font:{size:11},boxWidth:10}}}}});
 }
 
-// ── UTILS ──
-function fmt(s) {
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
-  return [h, m, ss].map(v => String(v).padStart(2, '0')).join(':');
+function bookOptions(){
+  const b=getBook();
+  const choice=confirm('Libro: "'+b.title+'"\n\nOK = Eliminar libro\nCancelar = Volver');
+  if(choice){db.books=db.books.filter(bv=>bv.id!==activeBookId);saveDb();goBack();toast('Libro eliminado');}
 }
-function fmtDur(s) {
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
-  return h > 0 ? h + 'h ' + m + 'min' : m + 'min ' + (s % 60) + 's';
-}
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
-}
-function resetAll() {
-  if (!confirm('¿Reiniciar todo el progreso? Esta acción no se puede deshacer.')) return;
-  state = { sessions: [], currentPage: 0 };
-  saveState(); renderAll();
-  toast('Progreso reiniciado');
+function resetBook(){
+  if(!confirm('¿Reiniciar todo el progreso de este libro?'))return;
+  const b=getBook();b.sessions=[];b.currentPage=0;saveDb();renderBook();toast('Progreso reiniciado');
 }
 
-loadState();
+function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return[h,m,ss].map(v=>String(v).padStart(2,'0')).join(':');}
+function fmtDur(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h>0?h+'h '+m+'min':m+'min '+(s%60)+'s';}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
 
-// Registrar Service Worker (PWA)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/montecristo-tracker/sw.js')
-      .catch(err => console.log('SW error:', err));
-  });
-}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/montecristo-tracker/sw.js').catch(e=>console.log(e));});}
+
+init();
 </script>
 </body>
 </html>
