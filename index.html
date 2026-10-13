@@ -43,7 +43,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:14px}
 .field input:focus{outline:none;border-color:var(--accent)}
 .modal-btns{display:flex;gap:8px;margin-top:1.25rem}
-.book-view{display:none}
+.book-view{display:none!important}
+.book-view.visible{display:block!important}
 .bv-header{padding:1rem 1.25rem;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
 .btn-back{background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0 4px;line-height:1}
 .bv-eyebrow{font-size:11px;color:var(--text3);letter-spacing:.05em}
@@ -268,7 +269,7 @@ function genId(){return Date.now().toString(36)+Math.random().toString(36).slice
 
 function renderLibrary(){
   document.getElementById('view-library').style.display='';
-  document.getElementById('view-book').style.display='none';
+  document.getElementById('view-book').classList.remove('visible');
   const n=db.books.length;
   document.getElementById('lib-sub').textContent=n===0?'Sin libros aún':n===1?'1 libro':n+' libros';
   const el=document.getElementById('books-list');
@@ -310,7 +311,7 @@ function openBook(id){
   activeBookId=id;
   const b=getBook();
   document.getElementById('view-library').style.display='none';
-  document.getElementById('view-book').style.display='';
+  document.getElementById('view-book').classList.add('visible');
   document.getElementById('bv-title').textContent=b.title;
   document.getElementById('bv-author').textContent=b.author||'';
   clearInterval(timerInterval);timerRunning=false;elapsed=0;
